@@ -11,13 +11,17 @@
     <h2>BLACKJACK</h2>
     <div class="menu">
       <div class="menu__players-selection">
-        <label for="numOfPlayer">Players</label>
+        <label for="numOfPlayer">Select number of players</label>
         <select name="numOfPlayer" id="numOfPlayer">
           <option value="1" selected>1</option>
           <option value="2">2</option>
           <option value="3">3</option>
           <option value="4">4</option>
         </select>
+      </div>
+      <div class="menu__players-container">
+        <label for="players">Players</label>
+        <div class="players"></div>
       </div>
       <button class="menu__btn-rules">INSTRUCTION</button>
       <button class="menu__btn-start">START</button>
