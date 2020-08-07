@@ -17,9 +17,8 @@ function createNameInputs() {
     numOfPlayersSelection.options[numOfPlayersSelection.selectedIndex].value
   )
   for (let i = 0; i < numOfPlayers; i++) {
-    const input = document.createElement('input')
+    const input = createElement("input", 'name')
     setAttributes(input, { type: 'text', id: Math.floor(Math.random() * 100), minlength: 1 })
-    input.classList.add('name')
     inputsContainer.append(input)
   }
 }
@@ -53,7 +52,28 @@ btnStart.addEventListener('click', function () {
   const div = createElement('div', 'cards')
   activePlayer.append(div)
   players[0].printName()
+  createButtonsContainer()
 })
+
+//create buttons
+function createTakingCardBtn(el) {
+  const btn = createElement('button', 'btn-takeCard')
+  createInnerText(btn, 'TAKE CARD')
+  el.appendChild(btn)
+}
+
+function createPasBtn(el) {
+  const btn = createElement('button', 'btn-Pas')
+  createInnerText(btn, 'PAS')
+  el.appendChild(btn)
+}
+
+function createButtonsContainer() {
+  const div = createElement('div', 'btn-container')
+  createTakingCardBtn(div)
+  createPasBtn(div)
+  activePlayer.appendChild(div)
+}
 
 //--------------------------------------helpers--------------------------------------
 function setAttributes(el, attrs) {
@@ -66,6 +86,10 @@ function createElement(el, className) {
   const htmlEl = document.createElement(el)
   htmlEl.classList.add(className)
   return htmlEl
+}
+
+function createInnerText(el, txt) {
+  el.innerText = txt
 }
 
 function removeChildren(parent) {
@@ -115,11 +139,11 @@ class Player {
     this.nameContainer = createElement('div', 'name-container')
 
     const label = createElement('p', 'name-label')
-    label.innerText = 'Player'
+    createInnerText(label, 'Player')
     this.nameContainer.appendChild(label)
 
     const name = createElement('p', 'name-player')
-    name.innerText = this.name
+    createInnerText(name, this.name)
     this.nameContainer.appendChild(name)
 
     activePlayer.appendChild(this.nameContainer)
@@ -158,20 +182,20 @@ class Player {
 
   printPoints() {
     console.log('test')
-    const points2 = document.querySelector('.points-container')
-    if (points2) {
-      removeChildren(points2)
+    const pointsWrapper = document.querySelector('.points-container')
+    if (pointsWrapper) {
+      removeChildren(pointsWrapper)
     } else {
       this.pointsContainer = createElement('div', 'points-container')
       this.pointsContainer.classList.add('points-container')
     }
 
     const label = createElement('p', 'points-label')
-    label.innerText = 'Points'
+    createInnerText(label, 'Points')
     this.pointsContainer.appendChild(label)
 
     const points = createElement('p', 'points')
-    points.innerText = this.points
+    createInnerText(points, this.points)
     this.pointsContainer.appendChild(points)
 
     activePlayer.appendChild(this.pointsContainer)
