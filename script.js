@@ -49,6 +49,10 @@ function createPlayers() {
 
 btnStart.addEventListener('click', function () {
   createPlayers()
+  players[0].isVisible = true
+  players[0].getCards()
+  const div = createElement('div', 'cards')
+  activePlayer.append(div)
 })
 
 //--------------------------------------helpers--------------------------------------
@@ -56,6 +60,12 @@ function setAttributes(el, attrs) {
   for (var key in attrs) {
     el.setAttribute(key, attrs[key])
   }
+}
+
+function createElement(el, className) {
+  const htmlEl = document.createElement(el)
+  htmlEl.classList.add(className)
+  return htmlEl
 }
 
 function removeChildren(parent) {
@@ -74,4 +84,26 @@ class Player {
     this.status = status
   }
 
+  getCards() {
+    fetch(API_CARDS, {
+      method: 'GET',
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Success:', data.cards)
+        data.cards.map((el) => {
+          this.drawCards(el)
+        })
+      })
+      .catch((error) => {
+        console.error('Error:', error)
+      })
+  }
+
+  drawCards(card) {
+    const cards = document.querySelector('.cards')
+    const img = createElement('img', 'cards__img')
+    setAttributes(img, { src: card.image })
+    cards.appendChild(img)
+  }
 }
