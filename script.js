@@ -51,6 +51,7 @@ btnStart.addEventListener('click', function () {
   createPlayers()
   players[0].isVisible = true
   players[0].getCards()
+  players[0].printName()
   const div = createElement('div', 'cards')
   activePlayer.append(div)
 })
@@ -105,5 +106,19 @@ class Player {
     const img = createElement('img', 'cards__img')
     setAttributes(img, { src: card.image })
     cards.appendChild(img)
+  }
+
+  printName() {
+    const nameContainer = createElement('div', 'name-container')
+
+    const label = createElement('p', 'name-label')
+    label.innerText = 'Gracz'
+    nameContainer.appendChild(label)
+
+    const name = createElement('p', 'name-player')
+    name.innerText = this.name  
+    nameContainer.appendChild(name)
+
+    activePlayer.appendChild(nameContainer)
   }
 }
