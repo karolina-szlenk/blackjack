@@ -16,7 +16,6 @@ function createNameInputs() {
   const numOfPlayers = Number(
     numOfPlayersSelection.options[numOfPlayersSelection.selectedIndex].value
   )
-  console.log(numOfPlayers)
   for (let i = 0; i < numOfPlayers; i++) {
     const input = document.createElement('input')
     setAttributes(input, { type: 'text', id: Math.floor(Math.random() * 100), minlength: 1 })
@@ -51,9 +50,9 @@ btnStart.addEventListener('click', function () {
   createPlayers()
   players[0].isVisible = true
   players[0].getCards()
-  players[0].printName()
   const div = createElement('div', 'cards')
   activePlayer.append(div)
+  players[0].printName()
 })
 
 //--------------------------------------helpers--------------------------------------
@@ -94,7 +93,11 @@ class Player {
         console.log('Success:', data.cards)
         data.cards.map((el) => {
           this.drawCards(el)
+          this.makeArrayOfNums(el)
         })
+      })
+      .then((data) => {
+        this.countPoints(), this.printPoints()
       })
       .catch((error) => {
         console.error('Error:', error)
@@ -109,16 +112,68 @@ class Player {
   }
 
   printName() {
-    const nameContainer = createElement('div', 'name-container')
+    this.nameContainer = createElement('div', 'name-container')
 
     const label = createElement('p', 'name-label')
-    label.innerText = 'Gracz'
-    nameContainer.appendChild(label)
+    label.innerText = 'Player'
+    this.nameContainer.appendChild(label)
 
     const name = createElement('p', 'name-player')
-    name.innerText = this.name  
-    nameContainer.appendChild(name)
+    name.innerText = this.name
+    this.nameContainer.appendChild(name)
 
-    activePlayer.appendChild(nameContainer)
+    activePlayer.appendChild(this.nameContainer)
+  }
+
+  getValue(value) {
+    let num = Number(value)
+    if (value === 'JACK') {
+      num = 2
+    }
+    if (value === 'QUEEN') {
+      num = 3
+    }
+    if (value === 'KING') {
+      num = 4
+    }
+    if (value === 'ACE') {
+      num = 11
+    }
+    return num
+  }
+
+  makeArrayOfNums(card) {
+    const value = this.getValue(card.value)
+    this.arr.push(value)
+    if (this.arr[0] === 11 && this.arr[1] === 11) {
+      console.log('Lucky you!!!')
+    }
+  }
+
+  countPoints() {
+    const sumOfPoints = this.arr.reduce((x1, x2) => x1 + x2, 0)
+    this.points = sumOfPoints
+    return sumOfPoints
+  }
+
+  printPoints() {
+    console.log('test')
+    const points2 = document.querySelector('.points-container')
+    if (points2) {
+      removeChildren(points2)
+    } else {
+      this.pointsContainer = createElement('div', 'points-container')
+      this.pointsContainer.classList.add('points-container')
+    }
+
+    const label = createElement('p', 'points-label')
+    label.innerText = 'Points'
+    this.pointsContainer.appendChild(label)
+
+    const points = createElement('p', 'points')
+    points.innerText = this.points
+    this.pointsContainer.appendChild(points)
+
+    activePlayer.appendChild(this.pointsContainer)
   }
 }
