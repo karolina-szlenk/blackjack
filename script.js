@@ -5,9 +5,14 @@ const API_CARD = 'https://deckofcardsapi.com/api/deck/new/draw/?count=1'
 //global store
 let flag = false
 let players = []
+let activePlayer
 let id
+const body = document.querySelector('body')
 let container = document.querySelector('.menu')
-const activePlayer = document.querySelector('.active-player')
+const activePlayerView = document.querySelector('.active-player')
+const heading = document.querySelector('h2')
+const btnContainer = document.querySelector('.btn-container')
+const message = document.querySelector('.message')
 
 class Menu {
   //todo -> divide init to smaller methods
@@ -85,6 +90,8 @@ class Menu {
   }
 }
 
+//----------------------------------------------------------------------------------------------------------------------------------------
+
 class Player {
   constructor(id, name, arr, isVisible, status, deckId) {
     this.id = id
@@ -95,54 +102,55 @@ class Player {
     this.deckId = deckId
   }
 
-  //todo -> correct url and data receive
-  getCards() {
-    fetch(`https://deckofcardsapi.com/api/deck/<<${this.deckId}>>/draw/?count=2`, {
-      method: 'GET',
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Success:', data.cards, data.deck_id)
-        data.cards.map((el) => {
-          this.drawCards(el)
-          this.makeArrayOfNums(el)
-        })
+  async getCards() {
+    try {
+      let response = await fetch(`https://deckofcardsapi.com/api/deck/${id}/draw/?count=2`)
+      let data = await response.json()
+      console.log(data.cards)
+      const cards = data.cards.map((el) => {
+        const card = new Card(el.value, el.image)
+        const value = card.getValue()
+        this.getScore(value)
+        this.showHand(el.image)
+        this.countPoints()
+        this.printPoints()
+        return card
       })
-      .then((data) => {
-        this.countPoints(), this.printPoints()
-      })
-      .catch((error) => {
-        console.error('Error:', error)
-      })
+      console.log(cards)
+      return cards
+    } catch (err) {
+      console.log(err)
+    }
   }
 
-  //todo -> correct url and data receive
-  getSingleCard() {
-    fetch(API_CARD, {
-      method: 'GET',
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Success:', data.cards)
-        data.cards.map((el) => {
-          this.drawCards(el)
-          this.makeArrayOfNums(el)
-        })
+  async getSingleCard() {
+    try {
+      let response = await fetch(`https://deckofcardsapi.com/api/deck/${id}/draw/?count=1`)
+      let data = await response.json()
+      console.log(data.cards)
+      const cards = data.cards.map((el) => {
+        const card = new Card(el.value, el.image)
+        const value = card.getValue()
+        this.getScore(value)
+        this.showHand(el.image)
+        this.countPoints()
+        this.printPoints()
+        return card
       })
-      .then((data) => {
-        this.countPoints(), this.printPoints()
-      })
-      .catch((error) => {
-        console.error('Error:', error)
-      })
+      console.log(cards)
+      return cards
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   //todo -> remove this method, because game draws card
-  drawCards(card) {
-    const cards = document.querySelector('.cards')
+  showHand(image) {
+    const cards = document.createElement('div')
     const img = createElement('img', 'cards__img')
-    setAttributes(img, { src: card.image })
+    setAttributes(img, { src: image })
     cards.appendChild(img)
+    activePlayerView.appendChild(cards)
   }
 
   //todo -> remove this method, because game prints name
@@ -157,30 +165,11 @@ class Player {
     createInnerText(name, this.name)
     this.nameContainer.appendChild(name)
 
-    activePlayer.appendChild(this.nameContainer)
-  }
-
-  //todo -> remove this method, because card gets value, not player
-  getValue(value) {
-    let num = Number(value)
-    if (value === 'JACK') {
-      num = 2
-    }
-    if (value === 'QUEEN') {
-      num = 3
-    }
-    if (value === 'KING') {
-      num = 4
-    }
-    if (value === 'ACE') {
-      num = 11
-    }
-    return num
+    activePlayerView.appendChild(this.nameContainer)
   }
 
   //todo -> remove this method, because game or card should make array from cards
-  makeArrayOfNums(card) {
-    const value = this.getValue(card.value)
+  getScore(value) {
     this.arr.push(value)
     if (this.arr[0] === 11 && this.arr[1] === 11) {
       console.log('Lucky you!!!')
@@ -190,7 +179,7 @@ class Player {
   //todo -> remove this method, because game should count points
   countPoints() {
     const sumOfPoints = this.arr.reduce((x1, x2) => x1 + x2, 0)
-    this.points = sumOfPoints
+    console.log(sumOfPoints)
     return sumOfPoints
   }
 
@@ -210,10 +199,10 @@ class Player {
     this.pointsContainer.appendChild(label)
 
     const points = createElement('p', 'points')
-    createInnerText(points, this.points)
+    createInnerText(points, this.countPoints())
     this.pointsContainer.appendChild(points)
 
-    activePlayer.appendChild(this.pointsContainer)
+    activePlayerView.appendChild(this.pointsContainer)
   }
 }
 
@@ -222,38 +211,38 @@ class Deck {
     this.url = 'https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1'
   }
 
-  init() {
-    return fetch(this.url)
-      .then((response) => {
-        if (response.ok) {
-          return response.json()
-        } else {
-          return Promise.reject({ status: response.status, statusText: response.statusText })
-        }
-      })
-      .catch((error) => {
-        if (error.status === 404) {
-          console.log(error.status)
-        }
-      })
+  async init() {
+    try {
+      let response = await fetch(this.url)
+      let deck = await response.json()
+      return deck
+    } catch (err) {
+      console.log(err)
+    }
   }
 }
 
 class Card {
-  getValue(value) {
-    let num = Number(value)
-    if (value === 'JACK') {
+  constructor(value, img) {
+    this.value = value
+    this.img = img
+  }
+
+  getValue() {
+    let num = Number(this.value)
+    if (this.value === 'JACK') {
       num = 2
     }
-    if (value === 'QUEEN') {
+    if (this.value === 'QUEEN') {
       num = 3
     }
-    if (value === 'KING') {
+    if (this.value === 'KING') {
       num = 4
     }
-    if (value === 'ACE') {
+    if (this.value === 'ACE') {
       num = 11
     }
+    console.log(num)
     return num
   }
 }
@@ -270,7 +259,7 @@ class BlackjackGame {
         id = data.deck_id
       })
       .then(() => this.createPlayers())
-    this.createButtonsContainer()
+    console.log(players)
   }
 
   createPlayers() {
@@ -281,14 +270,19 @@ class BlackjackGame {
       const player = new Player(inputId, inputValue, [], false, true, id)
       players.push(player)
     })
+    const newPlayer = players.find((el) => el.isVisible === false)
+    console.log(newPlayer)
+    activePlayer = newPlayer
+    activePlayer.isVisible = true
+    activePlayer.printName()
+    activePlayer.getCards()
     console.log(players)
+    this.createButtonsContainer()
   }
 
   createButtonsContainer() {
-    const div = createElement('div', 'btn-container')
-    this.createTakingCardBtn(div)
-    this.createPasBtn(div)
-    activePlayer.appendChild(div)
+    this.createTakingCardBtn(btnContainer)
+    this.createPasBtn(btnContainer)
   }
 
   createTakingCardBtn(el) {
@@ -297,6 +291,8 @@ class BlackjackGame {
     el.appendChild(btn)
     btn.addEventListener('click', () => {
       console.log('one card')
+      console.log(activePlayer)
+      activePlayer.getSingleCard().then(() => this.checkPoints(activePlayer))
     })
   }
 
@@ -304,9 +300,44 @@ class BlackjackGame {
     const btn = createElement('button', 'btn-Pas')
     createInnerText(btn, 'PAS')
     el.appendChild(btn)
-    btn.addEventListener('click', () => {
-      console.log('pas!')
+    btn.addEventListener('click', () => { 
+      this.updatePlayer()
     })
+  }
+
+  updatePlayer() {
+    if (btnContainer.querySelector('.btn-takeCard') === null) {
+      this.createButtonsContainer()
+    }
+    const newPlayer = players.find((el) => el.isVisible === false)
+    if (players.length > 1 && newPlayer) {
+      removeChildren(activePlayerView)
+      removeChildren(message)
+      activePlayer = newPlayer
+      activePlayer.isVisible = true
+      activePlayer.printName()
+      activePlayer.getCards()
+    } else {
+      heading.style.color = 'red'
+      this.getScore()
+    }
+  }
+
+  checkPoints(activePlayer) {
+    const sumOfPoints = activePlayer.arr.reduce((x1, x2) => x1 + x2, 0)
+    if (sumOfPoints >= 22) {
+      activePlayer.status = false
+      removeChildren(btnContainer)
+      removeChildren(activePlayerView)
+      message.innerText = 'You lost!'
+      setTimeout(this.updatePlayer(), 2000)
+    }
+  }
+
+  getScore() {
+    removeChildren(activePlayerView)
+    const score = document.querySelector('.score')
+    score.innerHTML = 'SCORE'
   }
 }
 
